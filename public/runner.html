@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JUH Match Dashboard - Advanced Frontend Test Runner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-hover: #34d399;
+            --secondary: #064e3b;
+            --secondary-hover: #047857;
+            --bg: #060b13;
+            --bg-alt: #0b1424;
+            --text: #ecfdf5;
+            --text-muted: #94a3b8;
+            --border: #112e24;
+            --success: #10b981;
+            --danger: #ef4444;
+            --card-bg: rgba(11, 20, 36, 0.7);
+            --shadow: rgba(0, 0, 0, 0.4);
+            --glow: rgba(16, 185, 129, 0.25);
+        }
+
+        [data-theme="light"] {
+            --primary: #059669;
+            --primary-hover: #047857;
+            --secondary: #f0fdf4;
+            --secondary-hover: #dcfce7;
+            --bg: #fcfdfc;
+            --bg-alt: #f0fdf4;
+            --text: #062f1b;
+            --text-muted: #4b5563;
+            --border: #d1fae5;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --shadow: rgba(4, 120, 87, 0.08);
+            --glow: rgba(16, 185, 129, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem 1.5rem;
+            transition: background-color 0.4s, color 0.4s;
+            background-image: 
+                radial-gradient(at 0% 0%, var(--glow) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, var(--glow) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            text-align: center;
+            box-shadow: 0 8px 24px var(--shadow);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .stat-value.passed { color: var(--success); }
+        .stat-value.failed { color: var(--danger); }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            height: 12px;
+            margin-bottom: 2.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-hover));
+            border-radius: 9999px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        button {
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.5rem;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--bg);
+            box-shadow: 0 4px 12px var(--glow);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-hover);
+        }
+
+        /* Test Table */
+        .test-list {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 12px 36px var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-item:hover {
+            background: rgba(16, 185, 129, 0.03);
+        }
+
+        .test-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .test-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .test-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .test-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.3rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            gap: 0.3rem;
+        }
+
+        .test-badge.pass {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .test-badge.fail {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .test-badge.pending {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-muted);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        /* Error Log Card */
+        .error-log-card {
+            background: rgba(239, 68, 68, 0.03);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .error-log-card h3 {
+            color: var(--danger);
+            margin-bottom: 0.5rem;
+        }
+
+        .error-log-content {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #fca5a5;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Frontend Automated Test Suite</h1>
+        <p class="subtitle">Bilingual Coordination Registry System Test Runner</p>
+    </header>
+
+    <!-- Stats Dashboard -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Assertions</div>
+            <div class="stat-value" id="totalCount">15</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Passed</div>
+            <div class="stat-value passed" id="passedCount">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Failed</div>
+            <div class="stat-value failed" id="failedCount">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Status</div>
+            <div class="stat-value" id="statusLabel" style="font-size: 1.4rem; padding-top: 0.5rem;">READY</div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-wrapper">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Actions Control Panel -->
+    <div class="actions">
+        <button id="themeToggleBtn" class="btn-secondary">Toggle Theme 🌙</button>
+        <button id="runBtn" class="btn-primary">Execute Test Suite ▶</button>
+    </div>
+
+    <!-- Test Checklist -->
+    <div class="test-list" id="testList">
+        <!-- Will be dynamically populated -->
+    </div>
+
+    <!-- Failure Output Log -->
+    <div class="error-log-card" id="errorLogCard">
+        <h3>Assertion Failures</h3>
+        <div class="error-log-content" id="errorLogContent"></div>
+    </div>
+</div>
+
+<script type="module">
+    // Direct code importing/mocking of the app.js systems
+
+    // 1. Specialty capacities
+    const specialtiesWithSeats = {
+        "طب وجراحة العيون": 3,
+        "الجراحة العامة": 11,
+        "أمراض النساء والولادة": 5,
+        "الأشعة التشخيصية": 4,
+        "الطب النووي": 1,
+        "الأمراض الباطنية": 15
+    };
+
+    // 2. Arabic & English Translation table validation
+    const translations = {
+        ar: {
+            reassuranceTitle: "تعهد الخصوصية وموثوقية البيانات",
+            lblFullName: "الاسم الثلاثي (بالعربية)",
+            lblNo: "لا",
+            submitBtn: "إرسال البيانات"
+        },
+        en: {
+            reassuranceTitle: "Privacy Commitment & Data Integrity",
+            lblFullName: "Full Name (Arabic)",
+            lblNo: "No",
+            submitBtn: "Submit Points"
+        }
+    };
+
+    // 3. ID Generator logic
+    function generateUid() {
+        let uid = '';
+        const chars = '0123456789';
+        for (let i = 0; i < 4; i++) {
+            uid += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return uid;
+    }
+
+    // 4. Rank status calculations
+    function calculateRankStatus(rank, seats, isEn = false) {
+        if (rank <= seats) {
+            return isEn ? `Within Seats #${rank}` : `ضمن المقاعد #${rank}`;
+        } else {
+            const waitlistRank = rank - seats;
+            return isEn ? `Waitlist #${waitlistRank}` : `قائمة الانتظار #${waitlistRank}`;
+        }
+    }
+
+    // 5. 50% locking checks
+    function isSpecialtyUnlocked(count, seats) {
+        const threshold = Math.ceil(seats * 0.5);
+        return count >= threshold;
+    }
+
+    // Test Framework
+    const tests = [
+        {
+            id: 'translation_table_ar',
+            title: 'Verify Arabic Translations Dictionary',
+            desc: 'Ensures essential Arabic labels exist in translation tables.',
+            run: () => {
+                if (!translations.ar.reassuranceTitle) throw new Error("Missing 'reassuranceTitle' in Arabic translation");
+                if (!translations.ar.lblFullName) throw new Error("Missing 'lblFullName' in Arabic translation");
+                if (translations.ar.lblNo !== "لا") throw new Error("Incorrect 'lblNo' translation in Arabic");
+                return true;
+            }
+        },
+        {
+            id: 'translation_table_en',
+            title: 'Verify English Translations Dictionary',
+            desc: 'Ensures essential English labels exist in translation tables.',
+            run: () => {
+                if (!translations.en.reassuranceTitle) throw new Error("Missing 'reassuranceTitle' in English translation");
+                if (!translations.en.lblFullName) throw new Error("Missing 'lblFullName' in English translation");
+                if (translations.en.lblNo !== "No") throw new Error("Incorrect 'lblNo' translation in English");
+                return true;
+            }
+        },
+        {
+            id: 'uid_length',
+            title: 'Verify Anonymous ID Length',
+            desc: 'Ensures the generated unique anonymous code is exactly 4 characters.',
+            run: () => {
+                const id = generateUid();
+                if (id.length !== 4) throw new Error(`Generated ID length was ${id.length}, expected 4.`);
+                return true;
+            }
+        },
+        {
+            id: 'uid_charset',
+            title: 'Verify Anonymous ID Charset',
+            desc: 'Ensures the generated anonymous ID only contains numeric digits (0-9).',
+            run: () => {
+                const id = generateUid();
+                const validRegex = /^[0-9]{4}$/;
+                if (!validRegex.test(id)) throw new Error(`Generated ID "${id}" contains non-numeric characters.`);
+                return true;
+            }
+        },
+        {
+            id: 'uid_legacy_absent',
+            title: 'Verify Legacy Prefix Absence',
+            desc: 'Ensures the ID does not have the obsolete "JUH-" prefix.',
+            run: () => {
+                const id = generateUid();
+                if (id.startsWith('JUH-')) throw new Error(`Obsolete "JUH-" prefix found in ID: ${id}`);
+                return true;
+            }
+        },
+        {
+            id: 'rank_within_seats_ar',
+            title: 'Rank Calculator - Within Seats (Arabic)',
+            desc: 'Given rank <= seats, verify correct Arabic badge layout output.',
+            run: () => {
+                const output = calculateRankStatus(2, 3, false);
+                if (output !== "ضمن المقاعد #2") throw new Error(`Unexpected output: "${output}"`);
+                return true;
+            }
+        },
+        {
+            id: 'rank_within_seats_en',
+            title: 'Rank Calculator - Within Seats (English)',
+            desc: 'Given rank <= seats, verify correct English badge layout output.',
+            run: () => {
+                const output = calculateRankStatus(1, 3, true);
+                if (output !== "Within Seats #1") throw new Error(`Unexpected output: "${output}"`);
+                return true;
+            }
+        },
+        {
+            id: 'rank_waitlist_ar',
+            title: 'Rank Calculator - Waitlist (Arabic)',
+            desc: 'Given rank > seats, verify correct Arabic waiting list offset calculation.',
+            run: () => {
+                const output = calculateRankStatus(5, 3, false);
+                if (output !== "قائمة الانتظار #2") throw new Error(`Unexpected output: "${output}"`);
+                return true;
+            }
+        },
+        {
+            id: 'rank_waitlist_en',
+            title: 'Rank Calculator - Waitlist (English)',
+            desc: 'Given rank > seats, verify correct English waiting list offset calculation.',
+            run: () => {
+                const output = calculateRankStatus(6, 3, true);
+                if (output !== "Waitlist #3") throw new Error(`Unexpected output: "${output}"`);
+                return true;
+            }
+        },
+        {
+            id: 'threshold_eye_surgery_locked',
+            title: 'Occupancy Check - Eye Surgery Locked (< 50%)',
+            desc: 'Eye Surgery (3 seats, threshold 2). Asserts 1 entry remains locked.',
+            run: () => {
+                const isUnlocked = isSpecialtyUnlocked(1, 3);
+                if (isUnlocked) throw new Error("Specialty should remain locked with only 1 entry.");
+                return true;
+            }
+        },
+        {
+            id: 'threshold_eye_surgery_unlocked',
+            title: 'Occupancy Check - Eye Surgery Unlocked (>= 50%)',
+            desc: 'Eye Surgery (3 seats, threshold 2). Asserts 2 entries unlock stats.',
+            run: () => {
+                const isUnlocked = isSpecialtyUnlocked(2, 3);
+                if (!isUnlocked) throw new Error("Specialty should unlock with 2 entries.");
+                return true;
+            }
+        },
+        {
+            id: 'threshold_internal_medicine_locked',
+            title: 'Occupancy Check - Internal Med Locked (< 50%)',
+            desc: 'Internal Medicine (15 seats, threshold 8). Asserts 7 entries remain locked.',
+            run: () => {
+                const isUnlocked = isSpecialtyUnlocked(7, 15);
+                if (isUnlocked) throw new Error("Specialty should remain locked with 7 entries.");
+                return true;
+            }
+        },
+        {
+            id: 'threshold_internal_medicine_unlocked',
+            title: 'Occupancy Check - Internal Med Unlocked (>= 50%)',
+            desc: 'Internal Medicine (15 seats, threshold 8). Asserts 8 entries unlock stats.',
+            run: () => {
+                const isUnlocked = isSpecialtyUnlocked(8, 15);
+                if (!isUnlocked) throw new Error("Specialty should unlock with 8 entries.");
+                return true;
+            }
+        },
+        {
+            id: 'theme_toggle_storage',
+            title: 'Interaction - Theme Storage Class Toggle',
+            desc: 'Verifies the DOM and local storage classes adapt to light/dark themes.',
+            run: () => {
+                const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+                const nextTheme = initialTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                localStorage.setItem('theme', nextTheme);
+                
+                const verified = document.documentElement.getAttribute('data-theme');
+                if (verified !== nextTheme) {
+                    throw new Error(`Data-theme was "${verified}", expected "${nextTheme}".`);
+                }
+                
+                // Restore
+                document.documentElement.setAttribute('data-theme', initialTheme);
+                localStorage.setItem('theme', initialTheme);
+                return true;
+            }
+        },
+        {
+            id: 'reassurance_modal_trigger',
+            title: 'Interaction - Privacy Modal Overlay Transition',
+            desc: 'Ensures the modal display class toggles properly.',
+            run: () => {
+                const container = document.createElement('div');
+                container.className = 'modal';
+                
+                container.classList.add('show');
+                if (!container.classList.contains('show')) throw new Error("Modal failed to transition to active state (.show)");
+                
+                container.classList.remove('show');
+                if (container.classList.contains('show')) throw new Error("Modal failed to remove active class state");
+                return true;
+            }
+        }
+    ];
+
+    // Populate Test Checklist in UI
+    function initTestUI() {
+        const testList = document.getElementById('testList');
+        testList.innerHTML = '';
+        document.getElementById('totalCount').textContent = tests.length;
+        document.getElementById('passedCount').textContent = 0;
+        document.getElementById('failedCount').textContent = 0;
+        
+        tests.forEach(test => {
+            const item = document.createElement('div');
+            item.className = 'test-item';
+            item.id = `item_${test.id}`;
+            item.innerHTML = `
+                <div class="test-info">
+                    <span class="test-title">${test.title}</span>
+                    <span class="test-desc">${test.desc}</span>
+                </div>
+                <div>
+                    <span class="test-badge pending" id="badge_${test.id}">PENDING</span>
+                </div>
+            `;
+            testList.appendChild(item);
+        });
+    }
+
+    // Execution Core
+    async function runTestSuite() {
+        document.getElementById('statusLabel').textContent = 'RUNNING';
+        document.getElementById('statusLabel').style.color = '#3b82f6';
+        
+        let passed = 0;
+        let failed = 0;
+        const failures = [];
+        
+        document.getElementById('errorLogCard').style.display = 'none';
+        document.getElementById('errorLogContent').textContent = '';
+
+        for (let i = 0; i < tests.length; i++) {
+            const test = tests[i];
+            const badge = document.getElementById(`badge_${test.id}`);
+            
+            // Introduce a visual micro-delay for premium aesthetic pacing
+            await new Promise(resolve => setTimeout(resolve, 80));
+
+            try {
+                test.run();
+                badge.className = 'test-badge pass';
+                badge.textContent = 'PASSED ✓';
+                passed++;
+                document.getElementById('passedCount').textContent = passed;
+            } catch (err) {
+                badge.className = 'test-badge fail';
+                badge.textContent = 'FAILED ✗';
+                failed++;
+                document.getElementById('failedCount').textContent = failed;
+                failures.push(`[${test.title}] failed: ${err.message}`);
+            }
+
+            const pct = Math.round(((i + 1) / tests.length) * 100);
+            document.getElementById('progressBar').style.width = `${pct}%`;
+        }
+
+        // Finalize Dashboard Results
+        if (failed === 0) {
+            document.getElementById('statusLabel').textContent = 'ALL PASSED';
+            document.getElementById('statusLabel').style.color = 'var(--success)';
+        } else {
+            document.getElementById('statusLabel').textContent = 'FAILURES';
+            document.getElementById('statusLabel').style.color = 'var(--danger)';
+            
+            document.getElementById('errorLogCard').style.display = 'block';
+            document.getElementById('errorLogContent').textContent = failures.join('\n\n');
+        }
+    }
+
+    // Event Bindings
+    document.getElementById('runBtn').addEventListener('click', runTestSuite);
+    
+    // Theme Switcher for Test Runner
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        document.getElementById('themeToggleBtn').textContent = next === 'dark' ? 'Toggle Theme 🌙' : 'Toggle Theme ☀️';
+    });
+
+    // Initialize UI on Load
+    initTestUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة - JUH Match Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        .admin-login {
+            max-width: 400px;
+            margin: 5rem auto;
+            text-align: center;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+        #adminDashboard {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer" style="justify-content: flex-end; gap: 0.75rem; padding: 0.5rem 1.5rem;">
+        <button id="themeToggle" class="theme-btn" aria-label="Toggle theme">
+            <span id="themeToggleIcon">🌙</span>
+        </button>
+        <button id="logoutBtn" class="btn-secondary" style="display: none; padding: 0.4rem 1rem; font-size: 0.9rem;">تسجيل الخروج</button>
+    </div>
+
+    <header class="hero" style="padding: 3rem 1.5rem;">
+        <h1>لوحة الإدارة</h1>
+        <p>مخصصة للمسؤولين فقط للتحقق من الإدخالات وحذف الإدخالات الوهمية.</p>
+    </header>
+
+    <main class="container">
+        <!-- Login Section -->
+        <div id="loginSection" class="admin-login">
+            <h2>تسجيل الدخول</h2>
+            <p style="margin-bottom: 1.5rem; color: var(--text-muted);">يرجى تسجيل الدخول بحساب Google المصرح له لإدارة البيانات.</p>
+            <button id="loginBtn" class="btn-primary w-100">تسجيل الدخول عبر Google</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="adminDashboard">
+            <!-- Lock Settings Banner -->
+            <div class="stat-card" style="margin-top: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border: 1px solid var(--border);">
+                <div>
+                    <h3 style="margin-bottom: 0.25rem;">حالة نموذج تسجيل النقاط</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">يمكنك قفل إمكانية تعبئة نموذج النقاط العام للأطباء أو إعادة فتحه في أي وقت.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span id="lockStatusBadge" class="badge-matched" style="animation: none; font-size: 0.9rem; padding: 0.4rem 1rem;">مفتوح للتسجيل</span>
+                    <button id="toggleLockBtn" class="btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.95rem;">إغلاق التسجيل</button>
+                </div>
+            </div>
+
+            <div class="data-section" style="margin-top: 2rem;">
+                <div class="filter-bar" style="align-items: center;">
+                    <h2>جميع الإدخالات مع الأسماء الحقيقية</h2>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                        <p style="margin: 0;">عدد الطلبات الإجمالي: <span id="totalCount" style="font-weight:bold; color:var(--primary);">0</span></p>
+                        <button id="exportAdminCsvBtn" class="btn-secondary" style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                            <span>📥</span> <span>تصدير الملف الكامل (CSV)</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="adminTable">
+                        <thead>
+                            <tr>
+                                <th>الاسم الحقيقي</th>
+                                <th>الاسم / الرمز المعروض</th>
+                                <th>عام / خاص</th>
+                                <th>التخصص</th>
+                                <th>النقاط</th>
+                                <th>الحالة</th>
+                                <th>وقت الإدخال</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <button type="button" class="close-btn" id="closeEditBtn" aria-label="Close" onclick="document.getElementById('editModal').classList.remove('show')">&times;</button>
+            <h2 id="editModalTitle">تعديل بيانات المتقدم</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">تعديل الاسم والفرز الحقيقي ونقاط المتقدم. سيتم مزامنة التغييرات تلقائياً وبشكل آمن.</p>
+            <form id="editForm">
+                <input type="hidden" id="editCandidateId">
+                <div class="form-group">
+                    <label for="editFullName">الاسم الثلاثي (بالعربية)</label>
+                    <input type="text" id="editFullName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPoints">النقاط (من 100)</label>
+                    <input type="number" id="editPoints" step="0.001" min="55" max="100" required placeholder="مثال: 85.625">
+                </div>
+                <button type="submit" id="editSubmitBtn" class="btn-primary w-100">حفظ التغييرات</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

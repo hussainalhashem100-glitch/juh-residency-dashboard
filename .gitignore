@@ -1,0 +1,5 @@
+node_modules/
+.firebase/
+mock-ids.json
+pglite-debug.log
+bulk-delete-payload.json
