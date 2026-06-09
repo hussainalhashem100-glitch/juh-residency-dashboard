@@ -188,12 +188,15 @@ submissionForm.addEventListener('submit', async (e) => {
     const name = document.getElementById('fullName').value.trim();
     const isPublic = document.querySelector('input[name="isPublic"]:checked').value === 'yes';
     const specialty = document.getElementById('specialtySelect').value;
-    const points = parseFloat(document.getElementById('pointsInput').value);
+    const rawPoints = parseFloat(document.getElementById('pointsInput').value);
+    const isJUGraduate = document.querySelector('input[name="isJUGraduate"]:checked')?.value === 'yes';
+    const juBonus = isJUGraduate ? 10 : 0;
+    const points = rawPoints + juBonus;
 
-    if (points < 55 || points > 100) {
+    if (rawPoints < 60 || rawPoints > 90) {
         alert(isEn 
-            ? "Please enter correct points between 55 and 100, not your exam grade. (Minimum 55)"
-            : "الرجاء إدخال نقاط صحيحة من 100 وليس علامتك في الامتحان. (الحد الأدنى 55)");
+            ? "Please enter your final score exactly as shown on the official application website (between 60 and 90), without the University of Jordan graduate bonus."
+            : "الرجاء إدخال العلامة النهائية كما تظهر بالضبط في موقع التقديم الرسمي (بين 60 و 90)، بدون علامات خريجي الجامعة الأردنية.");
         submitBtn.disabled = false;
         submitBtn.textContent = isEn ? 'Submit Points' : 'إرسال البيانات';
         return;
@@ -213,6 +216,8 @@ submissionForm.addEventListener('submit', async (e) => {
         displayId: displayId,
         specialty: specialty,
         points: points,
+        rawPoints: rawPoints,
+        isJUGraduate: isJUGraduate,
         timestamp: Date.now()
     };
 
@@ -362,7 +367,7 @@ function updateTable() {
         tr.innerHTML = `
             <td ${highlightClass}>${displayName}</td>
             <td>${specDisplayName}</td>
-            <td style="color: var(--primary); font-weight: 700;">${sub.points.toFixed(3)}</td>
+            <td style="color: var(--primary); font-weight: 700;">${sub.points.toFixed(3)}${sub.isJUGraduate && sub.rawPoints != null ? ' <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(' + sub.rawPoints.toFixed(3) + ' + 10)</span>' : ''}</td>
             <td>${statusBadge}</td>
             <td style="font-size: 0.85rem; color: var(--text-muted);">${timeStr}</td>
         `;
@@ -468,8 +473,12 @@ const translations = {
         lblYes: "نعم",
         lblNo: "لا",
         lblSpecialty: "التخصص المقبول فيه",
-        lblPointsInput: "النقاط (من 100)",
-        lblPointsNote: "أدخل مجموع النقاط من 100 وليس علامتك في الامتحان.",
+        lblPointsInput: "العلامة النهائية (كما تظهر في موقع التقديم)",
+        lblPointsNote: "أدخل العلامة النهائية كما تظهر بالضبط في موقع التقديم الرسمي (بدون علامات خريجي الجامعة الأردنية).",
+        lblJUGraduate: "هل أنت خريج الجامعة الأردنية (بكالوريوس)؟",
+        lblJUYes2: "نعم (+10 نقاط)",
+        lblJUNo2: "لا",
+        lblJUNote: "حسب ما أعلنت الجامعة: \"أن العلامات العشر (10) المخصصة لخريجي درجة البكالوريوس من الجامعة الأردنية لا تظهر ضمن المجموع النهائي في طلب التقديم، وتم احتسابها وإضافتها عند إجراء المفاضلة النهائية بين المتقدمين.\"",
         submitBtn: "إرسال البيانات",
         successTitle: "تم بنجاح!",
         successDesc: "شكراً لمشاركتك. لقد تم حفظ بياناتك بنجاح.",
@@ -509,8 +518,12 @@ const translations = {
         lblYes: "Yes",
         lblNo: "No",
         lblSpecialty: "Accepted Specialty",
-        lblPointsInput: "Points (out of 100)",
-        lblPointsNote: "Enter your total score out of 100, not your exam grade.",
+        lblPointsInput: "Final Score (as shown on the official application website)",
+        lblPointsNote: "Enter your final score exactly as it appears on the official application website (without University of Jordan graduate bonus).",
+        lblJUGraduate: "Are you a University of Jordan graduate (Bachelor's)?",
+        lblJUYes2: "Yes (+10 points)",
+        lblJUNo2: "No",
+        lblJUNote: "As the university announced: \"The ten (10) marks allocated for University of Jordan bachelor's graduates do not appear in the final total on the application, but were calculated and added during the final selection process among applicants.\"",
         submitBtn: "Submit Points",
         successTitle: "Success!",
         successDesc: "Thank you for sharing. Your data has been saved successfully.",
@@ -556,6 +569,10 @@ langToggle.addEventListener('click', () => {
     document.getElementById('lblSpecialty').textContent = t.lblSpecialty;
     document.getElementById('lblPointsInput').textContent = t.lblPointsInput;
     document.getElementById('lblPointsNote').textContent = t.lblPointsNote;
+    document.getElementById('lblJUGraduate').textContent = t.lblJUGraduate;
+    document.getElementById('lblJUYes2').textContent = t.lblJUYes2;
+    document.getElementById('lblJUNo2').textContent = t.lblJUNo2;
+    document.getElementById('lblJUNote').textContent = t.lblJUNote;
     document.getElementById('submitBtn').textContent = t.submitBtn;
 
     // Success Modal

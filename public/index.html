@@ -119,9 +119,18 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="pointsInput" id="lblPointsInput">النقاط (من 100)</label>
-                    <input type="number" id="pointsInput" step="0.001" min="55" max="100" required placeholder="مثال: 85.625">
-                    <small id="lblPointsNote" style="color: #dc2626; display: block; margin-top: 0.25rem;">أدخل مجموع النقاط من 100 وليس علامتك في الامتحان.</small>
+                    <label for="pointsInput" id="lblPointsInput">العلامة النهائية (كما تظهر في موقع التقديم)</label>
+                    <input type="number" id="pointsInput" step="0.001" min="60" max="90" required placeholder="مثال: 71.81">
+                    <small id="lblPointsNote" style="color: #dc2626; display: block; margin-top: 0.25rem;">أدخل العلامة النهائية كما تظهر بالضبط في موقع التقديم الرسمي (بدون علامات خريجي الجامعة الأردنية).</small>
+                </div>
+
+                <div class="form-group">
+                    <label id="lblJUGraduate">هل أنت خريج الجامعة الأردنية (بكالوريوس)؟</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="isJUGraduate" value="yes" required> <span id="lblJUYes2">نعم (+10 نقاط)</span></label>
+                        <label><input type="radio" name="isJUGraduate" value="no"> <span id="lblJUNo2">لا</span></label>
+                    </div>
+                    <small id="lblJUNote" style="color: #6b7280; display: block; margin-top: 0.25rem; font-size: 0.8rem; line-height: 1.6;">حسب ما أعلنت الجامعة: "أن العلامات العشر (10) المخصصة لخريجي درجة البكالوريوس من الجامعة الأردنية لا تظهر ضمن المجموع النهائي في طلب التقديم، وتم احتسابها وإضافتها عند إجراء المفاضلة النهائية بين المتقدمين."</small>
                 </div>
 
                 <button type="submit" id="submitBtn" class="btn-primary w-100">إرسال البيانات</button>

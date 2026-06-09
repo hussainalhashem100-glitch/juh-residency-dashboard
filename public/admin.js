@@ -171,7 +171,7 @@ function renderTable() {
             <td>${sub.displayId}</td>
             <td>${sub.isPublic ? '<span style="color:var(--success);">عام</span>' : '<span style="color:var(--danger);">خاص</span>'}</td>
             <td>${sub.specialty}</td>
-            <td style="font-weight:bold; color:var(--primary);">${sub.points.toFixed(3)}</td>
+            <td style="font-weight:bold; color:var(--primary);">${sub.points.toFixed(3)}${sub.isJUGraduate && sub.rawPoints != null ? ' <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(' + sub.rawPoints.toFixed(3) + ' + 10)</span>' : ''}</td>
             <td>${statusBadge}</td>
             <td style="font-size: 0.85rem; color: var(--text-muted);">${timeStr}</td>
             <td>
@@ -222,8 +222,8 @@ if (editForm) {
         const newName = document.getElementById('editFullName').value.trim();
         const newPoints = parseFloat(document.getElementById('editPoints').value);
         
-        if (newPoints < 55 || newPoints > 100) {
-            alert("الرجاء إدخال نقاط صحيحة بين 55 و 100");
+        if (newPoints < 60 || newPoints > 100) {
+            alert("الرجاء إدخال نقاط صحيحة بين 60 و 100");
             return;
         }
         
