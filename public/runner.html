@@ -382,7 +382,7 @@
 
     // 5. 50% locking checks
     function isSpecialtyUnlocked(count, seats) {
-        const threshold = Math.ceil(seats * 0.5);
+        const threshold = Math.ceil(seats * 0.25);
         return count >= threshold;
     }
 
