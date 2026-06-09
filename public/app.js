@@ -1,44 +1,35 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, set, get, goOnline, goOffline } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-// ─── Connection Management ───────────────────────────────────────────────────
-// On the Firebase Spark (free) plan, there is a 100 concurrent WebSocket
-// connection limit. To support 1000+ simultaneous users we use a
-// "connect-on-demand" pattern: go online → do the DB work → go offline.
-// This way each user only holds a connection for a fraction of a second
-// instead of keeping one open permanently.
+// ─── Firebase REST API ──────────────────────────────────────────────────────
+// Instead of the Firebase JS SDK (which opens persistent WebSocket connections
+// and counts against the Spark plan's 100-connection limit), we use plain
+// HTTP fetch() calls to the Firebase Realtime Database REST API.
+// This uses ZERO persistent connections and works on every device and network.
 // ─────────────────────────────────────────────────────────────────────────────
+const DB_URL = 'https://juh-match-dashboard-default-rtdb.europe-west1.firebasedatabase.app';
 
-// Firebase configuration
-const firebaseConfig = {
-  projectId: "juh-match-dashboard",
-  appId: "1:560492773876:web:49cbeefc8e7592505cb9a1",
-  storageBucket: "juh-match-dashboard.firebasestorage.app",
-  apiKey: "AIzaSyBmrcr1ZN3yUgbyNvt1imLpo0vp7O8kyYY",
-  authDomain: "juh-match-dashboard.firebaseapp.com",
-  messagingSenderId: "560492773876",
-  databaseURL: "https://juh-match-dashboard-default-rtdb.europe-west1.firebasedatabase.app"
-};
+async function dbGet(path) {
+    const res = await fetch(`${DB_URL}/${path}.json`);
+    if (!res.ok) throw new Error(`Database read failed: ${res.status}`);
+    return res.json();
+}
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+async function dbPost(path, data) {
+    const res = await fetch(`${DB_URL}/${path}.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`Database write failed: ${res.status}`);
+    return res.json();
+}
 
-// Start offline — we only go online when we need to read/write
-goOffline(db);
-
-/**
- * Wraps a database operation with goOnline/goOffline.
- * Connects, runs the async callback, then disconnects.
- * Returns whatever the callback returns.
- */
-async function withConnection(fn) {
-    goOnline(db);
-    try {
-        return await fn();
-    } finally {
-        goOffline(db);
-    }
+async function dbPut(path, data) {
+    const res = await fetch(`${DB_URL}/${path}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`Database write failed: ${res.status}`);
+    return res.json();
 }
 
 // Specialty Data with Official Seats
@@ -200,11 +191,8 @@ submissionForm.addEventListener('submit', async (e) => {
 
     // Safety check against submissions when locked
     try {
-        const isLocked = await withConnection(async () => {
-            const settingsSnap = await get(ref(db, 'settings'));
-            return settingsSnap.val()?.isLocked;
-        });
-        if (isLocked) {
+        const settings = await dbGet('settings');
+        if (settings?.isLocked) {
             alert(isEn ? "Submissions are closed. Data filling is completed." : "عذراً، تم الانتهاء من تعبئة البيانات والتسجيل مغلق حالياً.");
             submitBtn.disabled = false;
             submitBtn.textContent = isEn ? 'Submit Points' : 'إرسال البيانات';
@@ -250,14 +238,9 @@ submissionForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        await withConnection(async () => {
-            const publicRef = ref(db, 'submissions_public');
-            const newSubmissionRef = push(publicRef);
-            await set(newSubmissionRef, data);
-            
-            const privateRef = ref(db, 'submissions_private/' + newSubmissionRef.key);
-            await set(privateRef, { name: name });
-        });
+        const result = await dbPost('submissions_public', data);
+        const generatedKey = result.name;
+        await dbPut('submissions_private/' + generatedKey, { name: name });
         
         // Success
         formModal.classList.remove('show');
@@ -286,12 +269,10 @@ submissionForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Fetch Data Once — connection is managed by the caller (fetchSettingsAndData)
+// Fetch Data Once via REST API (no persistent connections)
 async function fetchSubmissions() {
     try {
-        const publicRef = ref(db, 'submissions_public');
-        const snapshot = await get(publicRef);
-        const data = snapshot.val();
+        const data = await dbGet('submissions_public');
         allSubmissions = [];
         if (data) {
             Object.keys(data).forEach(key => {
@@ -634,16 +615,12 @@ async function fetchSettingsAndData() {
     }
 
     try {
-        // Go online, fetch everything, then go offline
-        await withConnection(async () => {
-            // 1. Fetch Settings
-            const settingsSnap = await get(ref(db, 'settings'));
-            const settings = settingsSnap.val() || {};
-            isSystemLocked = !!settings.isLocked;
+        // 1. Fetch Settings via REST API
+        const settings = await dbGet('settings') || {};
+        isSystemLocked = !!settings.isLocked;
 
-            // 2. Fetch Submissions
-            await fetchSubmissions();
-        });
+        // 2. Fetch Submissions
+        await fetchSubmissions();
         
         const openFormBtn = document.getElementById('openFormBtn');
         if (openFormBtn) {
