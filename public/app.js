@@ -315,7 +315,7 @@ function updateDashboard() {
 function getSpecialtyStats(specName) {
     const specSubmissions = allSubmissions.filter(s => s.specialty === specName);
     const seats = specialtiesWithSeats[specName];
-    const threshold = Math.ceil(seats * 0.3);
+    const threshold = Math.ceil(seats * 0.01);
     const count = specSubmissions.length;
     const isAdequate = count >= threshold;
 
