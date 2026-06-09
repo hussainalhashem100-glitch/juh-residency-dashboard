@@ -2,16 +2,17 @@
 // This bypasses Firebase SDK entirely. It uses native fetch() which cannot be
 // blocked by standard ad-blockers and bypasses hospital WebSocket firewalls.
 // ─────────────────────────────────────────────────────────────────────────────
-const DB_URL = 'https://juh-match-dashboard-default-rtdb.europe-west1.firebasedatabase.app';
+const DB_URL = ''; // Relative path handled by Firebase Hosting rewrites
 
 async function dbGet(path) {
-    const res = await fetch(`${DB_URL}/${path}.json`);
+    // path is either 'api' or 'settings'
+    const res = await fetch(`/${path}`);
     if (!res.ok) throw new Error(`Database read failed: ${res.status}`);
     return res.json();
 }
 
 async function dbPost(path, data) {
-    const res = await fetch(`${DB_URL}/${path}.json`, {
+    const res = await fetch(`/${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -20,15 +21,7 @@ async function dbPost(path, data) {
     return res.json();
 }
 
-async function dbPut(path, data) {
-    const res = await fetch(`${DB_URL}/${path}.json`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error(`Database write failed: ${res.status}`);
-    return res.json();
-}
+// Removed dbPut, handled by the POST endpoint natively inside Cloud Functions.
 
 // Specialty Data with Official Seats
 const specialtiesWithSeats = {
@@ -236,9 +229,7 @@ submissionForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        const result = await dbPost('submissions_public', data);
-        const generatedKey = result.name;
-        await dbPut('submissions_private/' + generatedKey, { name: name });
+        const result = await dbPost('api', { data, name });
         
         // Success
         formModal.classList.remove('show');
@@ -267,10 +258,10 @@ submissionForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Fetch Data Using Native Fetch
+// Fetch Data Using Native Fetch through Proxy
 async function fetchSubmissions() {
     try {
-        const data = await dbGet('submissions_public');
+        const data = await dbGet('api');
         allSubmissions = [];
         if (data) {
             Object.keys(data).forEach(key => {
