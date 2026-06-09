@@ -367,7 +367,7 @@ function updateTable() {
         tr.innerHTML = `
             <td ${highlightClass}>${displayName}</td>
             <td>${specDisplayName}</td>
-            <td style="color: var(--primary); font-weight: 700;">${sub.points.toFixed(3)}${sub.isJUGraduate && sub.rawPoints != null ? ' <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(' + sub.rawPoints.toFixed(3) + ' + 10)</span>' : ''}</td>
+            <td style="color: var(--primary); font-weight: 700;">${sub.points.toFixed(2)}${sub.isJUGraduate && sub.rawPoints != null ? ' <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(' + sub.rawPoints.toFixed(2) + ' + 10)</span>' : ''}</td>
             <td>${statusBadge}</td>
             <td style="font-size: 0.85rem; color: var(--text-muted);">${timeStr}</td>
         `;
@@ -401,11 +401,11 @@ function updateStats() {
             bodyContent = `
                 <div class="stat-row">
                     <span style="color: var(--text-muted);">${isEn ? 'Highest Point:' : 'أعلى علامة:'}</span>
-                    <span class="stat-val" style="color: var(--success);">${s.max.toFixed(3)}</span>
+                    <span class="stat-val" style="color: var(--success);">${s.max.toFixed(2)}</span>
                 </div>
                 <div class="stat-row">
                     <span style="color: var(--text-muted);">${isEn ? 'Lowest Point:' : 'أقل علامة:'}</span>
-                    <span class="stat-val" style="color: var(--danger);">${s.min.toFixed(3)}</span>
+                    <span class="stat-val" style="color: var(--danger);">${s.min.toFixed(2)}</span>
                 </div>
             `;
         } else {
@@ -706,7 +706,7 @@ function exportPublicCsv() {
         // Escape double quotes in CSV values to avoid formatting issues
         const cleanName = `"${String(displayName || '').replace(/"/g, '""')}"`;
         const cleanSpec = `"${String(specDisplayName || '').replace(/"/g, '""')}"`;
-        const cleanPoints = typeof sub.points === 'number' ? sub.points.toFixed(3) : parseFloat(sub.points || 0).toFixed(3);
+        const cleanPoints = typeof sub.points === 'number' ? sub.points.toFixed(2) : parseFloat(sub.points || 0).toFixed(2);
         const cleanStatus = `"${String(statusStr || '').replace(/"/g, '""')}"`;
         const cleanTime = `"${String(timeStr || '').replace(/"/g, '""')}"`;
 

@@ -171,7 +171,7 @@ function renderTable() {
             <td>${sub.displayId}</td>
             <td>${sub.isPublic ? '<span style="color:var(--success);">عام</span>' : '<span style="color:var(--danger);">خاص</span>'}</td>
             <td>${sub.specialty}</td>
-            <td style="font-weight:bold; color:var(--primary);">${sub.points.toFixed(3)}${sub.isJUGraduate && sub.rawPoints != null ? ' <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(' + sub.rawPoints.toFixed(3) + ' + 10)</span>' : ''}</td>
+            <td style="font-weight:bold; color:var(--primary);">${sub.points.toFixed(2)}${sub.isJUGraduate && sub.rawPoints != null ? ' <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(' + sub.rawPoints.toFixed(2) + ' + 10)</span>' : ''}</td>
             <td>${statusBadge}</td>
             <td style="font-size: 0.85rem; color: var(--text-muted);">${timeStr}</td>
             <td>
@@ -346,7 +346,7 @@ function exportAdminCsv() {
         const cleanDispName = `"${String(sub.displayId || '').replace(/"/g, '""')}"`;
         const cleanPrivacy = `"${String(privacyStr || '').replace(/"/g, '""')}"`;
         const cleanSpec = `"${String(sub.specialty || '').replace(/"/g, '""')}"`;
-        const cleanPoints = typeof sub.points === 'number' ? sub.points.toFixed(3) : parseFloat(sub.points || 0).toFixed(3);
+        const cleanPoints = typeof sub.points === 'number' ? sub.points.toFixed(2) : parseFloat(sub.points || 0).toFixed(2);
         const cleanStatus = `"${String(statusStr || '').replace(/"/g, '""')}"`;
         const cleanTime = `"${String(timeStr || '').replace(/"/g, '""')}"`;
 
