@@ -309,6 +309,8 @@ specialtyFilter.addEventListener('change', (e) => {
 function updateDashboard() {
     updateStats();
     updateTable();
+    const counter = document.getElementById('totalEntriesCount');
+    if (counter) counter.textContent = allSubmissions.length;
 }
 
 // Calculate occupancy and threshold parameters
@@ -582,6 +584,7 @@ langToggle.addEventListener('click', () => {
     document.getElementById('thTime').textContent = t.thTime;
     document.getElementById('lblExportCsv').textContent = t.lblExportCsv;
     document.getElementById('lblRefresh').textContent = t.lblRefresh;
+    document.getElementById('lblTotalEntriesTitle').textContent = isEn ? "Total Submissions:" : "إجمالي الإدخالات:";
 
     // Form inputs and labels
     document.getElementById('modalTitle').textContent = t.modalTitle;
