@@ -1,5 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, push, set, get, goOnline, goOffline } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ─── Connection Management ───────────────────────────────────────────────────
+// On the Firebase Spark (free) plan, there is a 100 concurrent WebSocket
+// connection limit. To support 1000+ simultaneous users we use a
+// "connect-on-demand" pattern: go online → do the DB work → go offline.
+// This way each user only holds a connection for a fraction of a second
+// instead of keeping one open permanently.
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Firebase configuration
 const firebaseConfig = {
@@ -15,6 +23,23 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
+// Start offline — we only go online when we need to read/write
+goOffline(db);
+
+/**
+ * Wraps a database operation with goOnline/goOffline.
+ * Connects, runs the async callback, then disconnects.
+ * Returns whatever the callback returns.
+ */
+async function withConnection(fn) {
+    goOnline(db);
+    try {
+        return await fn();
+    } finally {
+        goOffline(db);
+    }
+}
 
 // Specialty Data with Official Seats
 const specialtiesWithSeats = {
@@ -175,8 +200,11 @@ submissionForm.addEventListener('submit', async (e) => {
 
     // Safety check against submissions when locked
     try {
-        const settingsSnap = await get(ref(db, 'settings'));
-        if (settingsSnap.val()?.isLocked) {
+        const isLocked = await withConnection(async () => {
+            const settingsSnap = await get(ref(db, 'settings'));
+            return settingsSnap.val()?.isLocked;
+        });
+        if (isLocked) {
             alert(isEn ? "Submissions are closed. Data filling is completed." : "عذراً، تم الانتهاء من تعبئة البيانات والتسجيل مغلق حالياً.");
             submitBtn.disabled = false;
             submitBtn.textContent = isEn ? 'Submit Points' : 'إرسال البيانات';
@@ -222,12 +250,14 @@ submissionForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        const publicRef = ref(db, 'submissions_public');
-        const newSubmissionRef = push(publicRef);
-        await set(newSubmissionRef, data);
-        
-        const privateRef = ref(db, 'submissions_private/' + newSubmissionRef.key);
-        await set(privateRef, { name: name });
+        await withConnection(async () => {
+            const publicRef = ref(db, 'submissions_public');
+            const newSubmissionRef = push(publicRef);
+            await set(newSubmissionRef, data);
+            
+            const privateRef = ref(db, 'submissions_private/' + newSubmissionRef.key);
+            await set(privateRef, { name: name });
+        });
         
         // Success
         formModal.classList.remove('show');
@@ -256,7 +286,7 @@ submissionForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Fetch Data Once (Option B - to prevent exceeding 100 concurrent WebSocket connections)
+// Fetch Data Once — connection is managed by the caller (fetchSettingsAndData)
 async function fetchSubmissions() {
     try {
         const publicRef = ref(db, 'submissions_public');
@@ -604,10 +634,16 @@ async function fetchSettingsAndData() {
     }
 
     try {
-        // 1. Fetch Settings
-        const settingsSnap = await get(ref(db, 'settings'));
-        const settings = settingsSnap.val() || {};
-        isSystemLocked = !!settings.isLocked;
+        // Go online, fetch everything, then go offline
+        await withConnection(async () => {
+            // 1. Fetch Settings
+            const settingsSnap = await get(ref(db, 'settings'));
+            const settings = settingsSnap.val() || {};
+            isSystemLocked = !!settings.isLocked;
+
+            // 2. Fetch Submissions
+            await fetchSubmissions();
+        });
         
         const openFormBtn = document.getElementById('openFormBtn');
         if (openFormBtn) {
@@ -624,9 +660,6 @@ async function fetchSettingsAndData() {
             }
         }
 
-        // 2. Fetch Submissions
-        await fetchSubmissions();
-
     } catch (error) {
         console.error("Error loading settings or data:", error);
     } finally {
@@ -642,8 +675,9 @@ async function fetchSettingsAndData() {
 // Initial Fetch
 fetchSettingsAndData();
 
-// Silent auto-refresh polling every 30 seconds
-setInterval(fetchSettingsAndData, 30000);
+// Silent auto-refresh polling every 60 seconds
+// (increased from 30s to reduce connection churn under Spark plan limits)
+setInterval(fetchSettingsAndData, 60000);
 
 // Manual Refresh event listener
 const refreshDataBtn = document.getElementById('refreshDataBtn');
