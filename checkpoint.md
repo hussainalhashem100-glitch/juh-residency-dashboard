@@ -61,11 +61,22 @@
 - Styled the counter to look clean, modern, and color-neutral to align with the dashboard's design.
 - Incremented cache-busting version query string to `v=15` to force clients to load the updated scripts.
 
+### 7. Telegram Notifications for New Entries
+
+**Files modified:** `public/app.js`, `public/index.html`
+
+- Integrated Telegram Bot API (`sendMessage`) to notify the admin immediately upon new submission.
+- The HTTP request is sent directly from the client (`app.js`) because Cloud Functions cannot be used due to GCP billing restrictions.
+- **Security Note:** The bot token is visible in the frontend source code. This is an accepted tradeoff since the bot is exclusively created for receiving these specific notifications.
+- The message includes the submitter's Name, Specialty, and Points formatted using Markdown.
+- Incremented cache-busting version query string to `v=16`.
+
 ---
 
 ## Testing Completed
 
 - **Anti-Spam Verification:** Validated that consecutive submissions are blocked and throw the appropriate alert.
+- **Telegram Webhook Check:** Ensured that we correctly pass the payload (Name, Specialty, Points) to the Chat ID.
 - **Threshold & UI Stats Check:** Verified that all specialties with at least 1 entry display correctly, and verified that the total submission counter updates dynamically.
 - All test entries cleaned from database after testing.
 

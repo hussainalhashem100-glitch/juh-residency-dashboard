@@ -255,6 +255,25 @@ submissionForm.addEventListener('submit', async (e) => {
         // Fingerprint the device to block future submissions
         localStorage.setItem('juh_dashboard_submitted', 'true');
         
+        // --- Telegram Notification ---
+        try {
+            const botToken = "8497671614:AAFfKWuWwXZVupK9kIvHuL3kEwUS23lwhKQ";
+            const chatId = "7047197428";
+            const text = `🚨 *New Submission!*\n\n*Name:* ${name}\n*Specialty:* ${specialty}\n*Points:* ${points.toFixed(2)}`;
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: text,
+                    parse_mode: "Markdown"
+                })
+            });
+        } catch (tgError) {
+            console.error("Telegram notification failed:", tgError);
+        }
+        // -----------------------------
+        
         // Success
         formModal.classList.remove('show');
         submissionForm.reset();
