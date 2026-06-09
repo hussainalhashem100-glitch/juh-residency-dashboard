@@ -162,6 +162,10 @@ function updateReassuranceContent() {
 
 // Modals
 document.getElementById('openFormBtn').addEventListener('click', () => {
+    if (localStorage.getItem('juh_dashboard_submitted')) {
+        alert(isEn ? "You have already submitted your data from this device." : "عذراً، لقد قمت بإرسال بياناتك مسبقاً من هذا الجهاز.");
+        return;
+    }
     updateReassuranceContent();
     reassuranceModal.classList.add('show');
 });
@@ -186,6 +190,14 @@ submissionForm.addEventListener('submit', async (e) => {
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
     submitBtn.textContent = isEn ? 'Submitting...' : 'جاري الإرسال...';
+
+    // Anti-spam device fingerprint check
+    if (localStorage.getItem('juh_dashboard_submitted')) {
+        alert(isEn ? "You have already submitted your data from this device." : "عذراً، لقد قمت بإرسال بياناتك مسبقاً من هذا الجهاز.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = isEn ? 'Submit Points' : 'إرسال البيانات';
+        return;
+    }
 
     // Safety check against submissions when locked
     try {
@@ -239,6 +251,9 @@ submissionForm.addEventListener('submit', async (e) => {
         const result = await dbPost('submissions_public', data);
         const generatedKey = result.name;
         await dbPut('submissions_private/' + generatedKey, { name: name });
+        
+        // Fingerprint the device to block future submissions
+        localStorage.setItem('juh_dashboard_submitted', 'true');
         
         // Success
         formModal.classList.remove('show');
