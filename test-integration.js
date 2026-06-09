@@ -147,8 +147,14 @@ async function runE2ETests() {
         // Select specialty: الطب الشرعي (Forensic Medicine)
         await page.select('#specialtySelect', 'الطب الشرعي');
         
-        // Input points
-        await page.type('#pointsInput', '92.450');
+        // Input raw score (must be 60-90)
+        await page.type('#pointsInput', '72.45');
+        
+        // Select JU Graduate: Yes (+10 points)
+        await page.evaluate(() => {
+            const radioYes = document.querySelector('input[name="isJUGraduate"][value="yes"]');
+            if (radioYes) radioYes.click();
+        });
 
         // Click submit and check immediate loading indicator state
         logStep("Form Submission Loader", "INFO", "Submitting form, checking button disabled state...");
@@ -206,7 +212,7 @@ async function runE2ETests() {
         });
 
         // Find our entry by points and anonymous ID
-        const matchedRow = tableRows.find(r => r.nameOrId === extractedAnonymousId && r.points === 92.45);
+        const matchedRow = tableRows.find(r => r.nameOrId === extractedAnonymousId && r.points === 82.45);
         const reactivitySuccess = !!matchedRow;
         
         logStep("Real-time Dashboard Update", reactivitySuccess ? "PASS" : "FAIL", matchedRow ? `Located row: [${matchedRow.nameOrId} | ${matchedRow.specialty} | ${matchedRow.points} | ${matchedRow.badge}]` : "Record not located in live table rendering.");
