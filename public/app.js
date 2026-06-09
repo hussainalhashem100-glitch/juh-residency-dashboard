@@ -1,35 +1,20 @@
-// ─── Firebase REST API ──────────────────────────────────────────────────────
-// We use plain HTTP fetch() calls to the Firebase Realtime Database REST API.
-// This uses ZERO persistent connections and works on every device and network,
-// avoiding the Spark plan's 100 concurrent connection limit.
-// ─────────────────────────────────────────────────────────────────────────────
-const DB_URL = 'https://juh-match-dashboard-default-rtdb.europe-west1.firebasedatabase.app';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-async function dbGet(path) {
-    const res = await fetch(`${DB_URL}/${path}.json`);
-    if (!res.ok) throw new Error(`Database read failed: ${res.status}`);
-    return res.json();
-}
+// Firebase configuration
+const firebaseConfig = {
+  projectId: "juh-match-dashboard",
+  appId: "1:560492773876:web:49cbeefc8e7592505cb9a1",
+  storageBucket: "juh-match-dashboard.firebasestorage.app",
+  apiKey: "AIzaSyBmrcr1ZN3yUgbyNvt1imLpo0vp7O8kyYY",
+  authDomain: "juh-match-dashboard.firebaseapp.com",
+  messagingSenderId: "560492773876",
+  databaseURL: "https://juh-match-dashboard-default-rtdb.europe-west1.firebasedatabase.app"
+};
 
-async function dbPost(path, data) {
-    const res = await fetch(`${DB_URL}/${path}.json`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error(`Database write failed: ${res.status}`);
-    return res.json();
-}
-
-async function dbPut(path, data) {
-    const res = await fetch(`${DB_URL}/${path}.json`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error(`Database write failed: ${res.status}`);
-    return res.json();
-}
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 // Specialty Data with Official Seats
 const specialtiesWithSeats = {
@@ -190,8 +175,8 @@ submissionForm.addEventListener('submit', async (e) => {
 
     // Safety check against submissions when locked
     try {
-        const settings = await dbGet('settings');
-        if (settings?.isLocked) {
+        const settingsSnap = await get(ref(db, 'settings'));
+        if (settingsSnap.val()?.isLocked) {
             alert(isEn ? "Submissions are closed. Data filling is completed." : "عذراً، تم الانتهاء من تعبئة البيانات والتسجيل مغلق حالياً.");
             submitBtn.disabled = false;
             submitBtn.textContent = isEn ? 'Submit Points' : 'إرسال البيانات';
@@ -237,9 +222,12 @@ submissionForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        const result = await dbPost('submissions_public', data);
-        const generatedKey = result.name;
-        await dbPut('submissions_private/' + generatedKey, { name: name });
+        const publicRef = ref(db, 'submissions_public');
+        const newSubmissionRef = push(publicRef);
+        await set(newSubmissionRef, data);
+        
+        const privateRef = ref(db, 'submissions_private/' + newSubmissionRef.key);
+        await set(privateRef, { name: name });
         
         // Success
         formModal.classList.remove('show');
@@ -268,10 +256,12 @@ submissionForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Fetch Data Once via REST API (no persistent connections)
+// Fetch Data Using Standard Firebase SDK
 async function fetchSubmissions() {
     try {
-        const data = await dbGet('submissions_public');
+        const publicRef = ref(db, 'submissions_public');
+        const snapshot = await get(publicRef);
+        const data = snapshot.val();
         allSubmissions = [];
         if (data) {
             Object.keys(data).forEach(key => {
@@ -614,8 +604,9 @@ async function fetchSettingsAndData() {
     }
 
     try {
-        // 1. Fetch Settings via REST API
-        const settings = await dbGet('settings') || {};
+        // 1. Fetch Settings
+        const settingsSnap = await get(ref(db, 'settings'));
+        const settings = settingsSnap.val() || {};
         isSystemLocked = !!settings.isLocked;
 
         // 2. Fetch Submissions
