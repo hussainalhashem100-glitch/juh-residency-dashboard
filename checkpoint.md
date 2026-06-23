@@ -1,6 +1,6 @@
 # JUH Residency Dashboard — Checkpoint
 
-**Date:** 2026-06-09  
+**Date:** 2026-06-23  
 **Live URL:** https://juh-residency.web.app  
 **Firebase Project:** `juh-match-dashboard`
 
@@ -71,6 +71,16 @@
 - The message includes the submitter's Name, Specialty, and Points formatted using Markdown.
 - Incremented cache-busting version query string to `v=16`.
 
+### 8. Official Specialty Cutoffs Ingestion & Update
+
+**Files modified:** `checkpoint.md`
+
+- Ingested the official lowest competitive points for the 18 medical specialties from `Least points.png` into the database.
+- Added them anonymously with display names as `"Least points"`, `isPublic: false`, and secure random 4-digit codes.
+- Subsequently processed updated cutoffs from `Least points (Updated).png` after some candidates skipped/declined their seats.
+- Updated existing entries for 8 specialties to reflect the new lower points cutoffs, boosting total submissions to 50.
+- Cleaned up the database by purging the temporary security probe records (`Secret Probe Candidate Name` / `TEST`) generated during verification.
+
 ---
 
 ## Testing Completed
@@ -79,6 +89,8 @@
 - **Telegram Webhook Check:** Ensured that we correctly pass the payload (Name, Specialty, Points) to the Chat ID.
 - **Threshold & UI Stats Check:** Verified that all specialties with at least 1 entry display correctly, and verified that the total submission counter updates dynamically.
 - All test entries cleaned from database after testing.
+- **Live Backend Security Rules Validation:** Run `test-security.js` to assert guest Write-Once and admin-only rules.
+- **Connect-on-Demand E2E Check:** Run `test-connection.js` to verify frontend formatting, theme toggling, and DB REST fetches.
 
 ---
 
@@ -96,6 +108,7 @@
 
 | Commit | Description |
 |--------|-------------|
+| `312ba7a` | DOCS: update checkpoint.md with specialty cutoff ingestion |
 | `c87dbb6` | UI: simplify total submissions counter design |
 | `09ddcc7` | FEAT: add total submissions counter UI |
 | `a526e49` | FEAT: update minimum entries threshold to 1% |
