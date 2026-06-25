@@ -1,6 +1,6 @@
 # JUH Residency Dashboard — Checkpoint
 
-**Date:** 2026-06-23  
+**Date:** 2026-06-25  
 **Live URL:** https://juh-residency.web.app  
 **Firebase Project:** `juh-match-dashboard`
 
@@ -77,8 +77,8 @@
 
 - Ingested the official lowest competitive points for the 18 medical specialties from `Least points.png` into the database.
 - Added them anonymously with display names as `"Least points"`, `isPublic: false`, and secure random 4-digit codes.
-- Subsequently processed updated cutoffs from `Least points (Updated).png` after some candidates skipped/declined their seats.
-- Updated existing entries for 8 specialties to reflect the new lower points cutoffs, boosting total submissions to 50.
+- Subsequently processed updated cutoffs from `Least points (Updated).png` after some candidates skipped/declined their seats, updating 8 specialties.
+- Processed V3 cutoffs from `Least points V3.png` after more candidate skips. Added these new cutoffs as *additional* entries in the database to preserve the progress data, bringing total database submissions to 54.
 - Cleaned up the database by purging the temporary security probe records (`Secret Probe Candidate Name` / `TEST`) generated during verification.
 
 ---
@@ -108,7 +108,8 @@
 
 | Commit | Description |
 |--------|-------------|
-| `312ba7a` | DOCS: update checkpoint.md with specialty cutoff ingestion |
+| `8e369a7` | DOCS: update checkpoint.md with V3 specialty cutoff additions |
+| `7854f09` | DOCS: update checkpoint.md with specialty cutoff ingestion |
 | `c87dbb6` | UI: simplify total submissions counter design |
 | `09ddcc7` | FEAT: add total submissions counter UI |
 | `a526e49` | FEAT: update minimum entries threshold to 1% |
